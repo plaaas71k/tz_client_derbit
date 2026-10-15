@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import time
 
 from celery import Celery
@@ -7,13 +6,14 @@ from app.db.database import engine, new_session
 
 from app.client import ClientCrypto
 from app.models.cryptomodel import CryptoPrice
+from app.config import settings
 
-logger = logging.getLogger(__name__)
+
 
 app = Celery(
     'tasks',
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0"
+    broker= settings.REDIS_URL,
+    backend=settings.REDIS_URL
 )
 
 
@@ -35,14 +35,11 @@ async def fetch_and_save():
                 for ticker in tickers:
                     data = await client.get_index_price(ticker)
 
-                    if "error" in data:
-                        logger.error("Deribit request failed for %s: %s", ticker, data["error"])
-                        continue
+                    if "error" in data: continue
 
                     price = data.get('result', {}).get('index_price')
-                    if price is None:
-                        logger.error("Deribit returned no index price for %s", ticker)
-                        continue
+
+                    if price is None:continue
 
                     session.add(
                         CryptoPrice(
@@ -52,8 +49,6 @@ async def fetch_and_save():
                         )
                     )
     finally:
-        # Celery calls asyncio.run() for every task, so each invocation has its
-        # own event loop. Do not keep asyncpg connections bound to a closed loop.
         await engine.dispose()
 
 
