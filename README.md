@@ -33,6 +33,13 @@ docker-compose.yaml
 
 Требуются Docker и Docker Compose.
 
+Склонируйте репозиторий и перейдите в директорию проекта:
+
+```bash
+git clone https://github.com/plaaas71k/tz_client_derbit.git
+cd tz_client_derbit
+```
+
 Создайте файл `.env` на основе примера:
 
 ```powershell
