@@ -35,11 +35,13 @@ async def fetch_and_save():
                 for ticker in tickers:
                     data = await client.get_index_price(ticker)
 
-                    if "error" in data: continue
+                    if "error" in data:
+                        continue
 
                     price = data.get('result', {}).get('index_price')
 
-                    if price is None:continue
+                    if price is None:
+                        continue
 
                     session.add(
                         CryptoPrice(

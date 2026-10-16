@@ -1,4 +1,6 @@
 
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
@@ -8,12 +10,13 @@ from app.schemas.crypto_price import CryptoPriceResponse, LastPriceResponse
 
 
 router = APIRouter(prefix="/prices", tags=["prices"])
+TickerQuery = Annotated[str, Query(min_length=1, description="Currency index ticker")]
 
 
 @router.get("", response_model=list[CryptoPriceResponse])
 async def get_prices_by_ticker(
     session: SessionDep,
-    ticker: str,
+    ticker: TickerQuery,
 ) -> list[CryptoPrice]:
     result = await session.scalars(
         select(CryptoPrice)
@@ -26,7 +29,7 @@ async def get_prices_by_ticker(
 @router.get("/last", response_model=LastPriceResponse)
 async def get_last_price_by_ticker(
     session: SessionDep,
-    ticker: str,
+    ticker: TickerQuery,
 ) -> CryptoPrice:
     result = await session.scalars(
         select(CryptoPrice)
@@ -45,10 +48,16 @@ async def get_last_price_by_ticker(
 @router.get("/history", response_model=list[CryptoPriceResponse])
 async def get_price_history_by_ticker(
         session: SessionDep,
-        ticker: str,
+        ticker: TickerQuery,
         date_from: int = Query(..., description="Начало периода (UNIX timestamp)"),
         date_to: int = Query(..., description="Конец периода (UNIX timestamp)")
 ):
+
+    if date_from > date_to:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="date_from must not be greater than date_to",
+        )
 
     result = await session.scalars(
         select(CryptoPrice)

@@ -1,0 +1,11 @@
+aiohttp
+alembic
+asyncpg
+celery
+fastapi
+pydantic-settings
+python-dotenv
+redis
+SQLAlchemy
+uvicorn
+greenlet>=3.1.1
